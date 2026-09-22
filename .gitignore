@@ -6,7 +6,10 @@
 *.local
 !.env.example
 
-# Sensitive Credentials & Keys
+# Sensitive Credentials, Passwords & Keys
+*password*
+*credential*
+*secret*
 credentials.json
 auth.json
 token.json
@@ -18,11 +21,19 @@ secrets.*
 *.crt
 *.pfx
 *.p12
+id_rsa*
+id_ed25519*
 
-# Local Server & IP overrides
+# Local Server & IP Overrides
 ip.txt
+ips.txt
+ip.json
+server.txt
+servers.txt
 server.local.*
 config.local.*
+private.*
+*.private
 
 # Logs
 logs
