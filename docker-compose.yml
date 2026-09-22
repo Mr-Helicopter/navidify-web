@@ -1,0 +1,16 @@
+services:
+  navidify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_NAVIDROME_URL_LAN: ${VITE_NAVIDROME_URL_LAN}
+        VITE_NAVIDROME_URL_TAILSCALE: ${VITE_NAVIDROME_URL_TAILSCALE}
+        VITE_NAVIDROME_USERNAME: ${VITE_NAVIDROME_USERNAME}
+        VITE_NAVIDROME_PASSWORD: ${VITE_NAVIDROME_PASSWORD}
+    container_name: navidify-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
