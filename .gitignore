@@ -35,9 +35,11 @@ config.local.*
 private.*
 *.private
 
-# Logs
+# Logs & Local Exports
 logs
 *.log
+chat.txt
+*chat*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
