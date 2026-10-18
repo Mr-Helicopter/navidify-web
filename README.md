@@ -1,46 +1,6 @@
 # Navidify Web
 
-**Navidify** is a personal, self-hosted web music client that replicates Spotify's desktop web UI pixel-for-pixel, streaming music directly from your [Navidrome](https://www.navidrome.org/) music server via the Subsonic API.
-
-Built with **React 19 + TypeScript + Vite + Tailwind CSS v4 + Zustand + Web Audio API**.
-
----
-
-## Features
-
-- **Spotify Desktop Web UI**:
-  - Dark theme with Spotify tokens (`#121212`, `#181818`, `#282828`, `#1DB954`).
-  - Left navigation sidebar with expandable Library, Liked Songs shortcut, and custom playlists.
-  - Collapsible right-hand panel for Queue and Now Playing specs.
-  - Sticky top navigation with back/forward history, integrated search bar, and user profile badge.
-  - Bottom persistent player bar with artwork, scrubbing seekbar, volume control, and quick action icons.
-- **Audio Engine & Gapless Playback**:
-  - Dual HTML5 Audio elements routed into a Web Audio API graph (`AudioContext` -> `MediaElementAudioSourceNode` -> 10-band `BiquadFilterNode` EQ -> `GainNode` -> `Destination`).
-  - Instant progressive HTTP range streaming without downloading entire lossless FLAC/MP3 files into RAM.
-  - Automatic preloading of the next queued track in the inactive audio slot during the last 15 seconds of playback.
-  - Smooth gain crossfading on track boundaries.
-- **10-Band Graphic Equalizer**:
-  - ISO center frequencies: 31Hz, 62Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz.
-  - Accessible via the sliders icon in the player bar.
-  - Curated genre presets (Flat, Bass Boost, Bass Reducer, Treble Boost, Vocal Boost, Rock, Pop, Electronic, Classical, Jazz, Acoustic) + custom manual tuning.
-  - Persistent gain settings and bypass toggle saved in LocalStorage.
-- **Automatic Network Detection (LAN vs. Tailscale)**:
-  - Startup ping race against `VITE_NAVIDROME_URL_LAN` (~1.5s timeout).
-  - Automatic fallback to `VITE_NAVIDROME_URL_TAILSCALE` if off the home network.
-  - Cached session base URL with automatic re-resolution on in-flight connection drop.
-  - Subtle status indicator badge in the sidebar with live latency display and one-click manual recheck.
-- **Subsonic API Integration**:
-  - Secure token + salt authentication (`t = md5(password + salt)`).
-  - Explicit JSON payload request format (`f=json`).
-  - Native Navidrome scrobbling (`scrobble` endpoint triggered at 50% or 4 minutes played).
-  - Starred / Liked songs synchronization (`star` and `unstar` endpoints).
-  - Playlist management (create, rename, delete, add tracks).
-  - Full-text debounced search across songs, albums, and artists.
-- **Synced Karaoke Lyrics**:
-  - Synchronized scrolling lyrics parsed from OpenSubsonic `getLyricsBySongId` or `.lrc` tags.
-  - Immersive full-screen karaoke view with live active line highlighting.
-- **PWA Ready**:
-  - Web app manifest and service worker shell for desktop or mobile installation.
+**Navidify** is a personal, self-hosted music streaming app for anyone running Navidrome. I basically did this because I found it difficult to move from Spotify to any other app, so this is literally Spotify WebUI, except the backend is your Navidrome server.
 
 ---
 
@@ -67,10 +27,10 @@ Edit `.env`:
 # Local Area Network URL (e.g. your home server IP on port 4533)
 VITE_NAVIDROME_URL_LAN=http://192.168.1.50:4533
 
-# Tailscale Static IP or VPN URL (used automatically when away from home)
+# Tailscale Static IP or VPN URL (switches automatically if your home address is unreachable)
 VITE_NAVIDROME_URL_TAILSCALE=http://100.x.y.z:4533
 
-# Navidrome Subsonic Credentials
+# Your navidrome server username and password
 VITE_NAVIDROME_USERNAME=your_username
 VITE_NAVIDROME_PASSWORD=your_password
 ```
@@ -80,7 +40,7 @@ VITE_NAVIDROME_PASSWORD=your_password
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Then open localhost:3000 on your browser! Or whatever your IP address is.
 
 ---
 
@@ -114,27 +74,16 @@ location /rest/ {
 
 ## Self-Hosting with Docker
 
-A production multi-stage Docker build is included with an optimized Nginx Alpine web server:
+If you prefer using Docker, that's all set too:
 
 ```bash
 docker compose up -d --build
 ```
 
-The container exposes Navidify on port `3000`.
+Also runs on port `3000`.
 
 ---
 
-## Audio Architecture Details
+## I used AI to help in this project.
 
-1. **Range Requests**: Audio files are streamed via progressive HTTP range requests using the HTML5 `<audio>` element. This prevents multi-megabyte lossless FLAC or 320kbps MP3 tracks from having to be loaded completely into memory before playback can begin.
-2. **Audio Graph Routing**: Both primary and secondary audio elements are connected to `MediaElementAudioSourceNode` instances in an `AudioContext`.
-3. **Filter Chain**: Audio passes through 10 cascaded `BiquadFilterNode` instances representing ISO center frequencies from 31Hz up to 16kHz, with adjustable gain from -12dB to +12dB.
-4. **Gapless Handoff**: When track progress exceeds 85% or enters the last 15 seconds, the secondary slot loads the next track's stream URL with `preload="auto"`. At track boundary, gains ramp smoothly and playback switches slots with zero delay.
-
----
-
-## Explicitly Out of Scope (v1)
-
-- Multi-user authentication/accounts (designed as a single-user personal tool).
-- Third-party scrobblers (Last.fm / ListenBrainz) — Navidrome's native play counts are used.
-- External lyrics APIs (only embedded `.lrc` and Subsonic/OpenSubsonic server lyrics are rendered).
+I'm not much of a coder myself, so AI definitely helped me more than a lot here.
