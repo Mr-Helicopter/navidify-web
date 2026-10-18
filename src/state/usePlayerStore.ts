@@ -4,6 +4,12 @@ import type { Song } from '../types/subsonic';
 import { audioEngine } from '../player/audioEngine';
 import { EQ_PRESETS } from '../player/eqPresets';
 import { api } from '../api/subsonic';
+import {
+  initMediaSession,
+  updateMediaSessionMetadata,
+  updateMediaSessionPlaybackState,
+  updateMediaSessionPosition,
+} from '../player/mediaSession';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -104,6 +110,9 @@ export const usePlayerStore = create<PlayerState>()(
           }
         }
 
+        updateMediaSessionMetadata(song);
+        updateMediaSessionPlaybackState(true);
+
         set({
           currentTrack: song,
           queue: newQueue,
@@ -171,6 +180,7 @@ export const usePlayerStore = create<PlayerState>()(
             nextIdx = 0;
           } else {
             audioEngine.pause();
+            updateMediaSessionPlaybackState(false);
             set({ isPlaying: false, currentTime: 0 });
             return;
           }
@@ -178,6 +188,8 @@ export const usePlayerStore = create<PlayerState>()(
 
         const nextSong = queue[nextIdx];
         if (nextSong) {
+          updateMediaSessionMetadata(nextSong);
+          updateMediaSessionPlaybackState(true);
           set({
             queueIndex: nextIdx,
             currentTrack: nextSong,
@@ -202,6 +214,8 @@ export const usePlayerStore = create<PlayerState>()(
         const prevIdx = queueIndex - 1;
         if (prevIdx >= 0 && queue[prevIdx]) {
           const prevSong = queue[prevIdx];
+          updateMediaSessionMetadata(prevSong);
+          updateMediaSessionPlaybackState(true);
           set({
             queueIndex: prevIdx,
             currentTrack: prevSong,
@@ -353,7 +367,9 @@ export const usePlayerStore = create<PlayerState>()(
 audioEngine.setListeners({
   onTimeUpdate: (currentTime, duration) => {
     const state = usePlayerStore.getState();
-    usePlayerStore.setState({ currentTime, duration: duration || state.duration });
+    const resolvedDuration = duration || state.duration;
+    usePlayerStore.setState({ currentTime, duration: resolvedDuration });
+    updateMediaSessionPosition(currentTime, resolvedDuration);
 
     // Scrobble check: 50% played or 4 minutes (240s)
     if (!state.hasScrobbledCurrent && state.currentTrack && duration > 0) {
@@ -378,9 +394,11 @@ audioEngine.setListeners({
   },
   onPlay: () => {
     usePlayerStore.setState({ isPlaying: true, isLoading: false });
+    updateMediaSessionPlaybackState(true);
   },
   onPause: () => {
     usePlayerStore.setState({ isPlaying: false });
+    updateMediaSessionPlaybackState(false);
   },
   onLoading: (isLoading) => {
     usePlayerStore.setState({ isLoading });
@@ -391,5 +409,15 @@ audioEngine.setListeners({
   onError: (err) => {
     console.error('[AudioEngine] Playback error:', err);
     usePlayerStore.setState({ isPlaying: false, isLoading: false });
+    updateMediaSessionPlaybackState(false);
   },
+});
+
+// Initialize Media Session actions for OS-level controls (macOS Now Playing, lock screen, keyboard media keys)
+initMediaSession({
+  onPlay: () => usePlayerStore.getState().togglePlay(),
+  onPause: () => usePlayerStore.getState().togglePlay(),
+  onPrevTrack: () => usePlayerStore.getState().prevTrack(),
+  onNextTrack: () => usePlayerStore.getState().nextTrack(),
+  onSeek: (seconds) => usePlayerStore.getState().seek(seconds),
 });

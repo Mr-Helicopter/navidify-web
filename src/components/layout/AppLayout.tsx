@@ -8,10 +8,14 @@ import { EqualizerModal } from '../player/EqualizerModal';
 import { LyricsView } from '../lyrics/LyricsView';
 import { useNetworkStore } from '../../state/useNetworkStore';
 import { useLibraryStore } from '../../state/useLibraryStore';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 export const AppLayout: React.FC = () => {
   const { recheckConnection } = useNetworkStore();
   const { fetchPlaylists, fetchStarred } = useLibraryStore();
+
+  // Mount global keyboard shortcuts for desktop & media keys
+  useKeyboardShortcuts();
 
   useEffect(() => {
     // Initial startup network race and library loading
