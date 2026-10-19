@@ -11,7 +11,7 @@ import { useLibraryStore } from '../state/useLibraryStore';
 export const AlbumPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle } = usePlayerStore();
+  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle, shuffle } = usePlayerStore();
   const { starredAlbumIds, toggleStarAlbum } = useLibraryStore();
 
   const [album, setAlbum] = useState<Album | null>(null);
@@ -133,16 +133,22 @@ export const AlbumPage: React.FC = () => {
 
         <button
           onClick={() => {
+            const willBeShuffle = !shuffle;
             toggleShuffle();
-            if (!isCurrentAlbum && songs.length > 0) {
+            if (willBeShuffle && !isCurrentAlbum && songs.length > 0) {
               const rand = Math.floor(Math.random() * songs.length);
-              playTrack(songs[rand], songs);
+              playTrack(songs[rand], songs, rand);
             }
           }}
-          className="text-[#b3b3b3] hover:text-white transition-colors"
-          title="Shuffle album"
+          className={`transition-colors relative p-2 rounded-full hover:bg-[#282828] ${
+            shuffle ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+          }`}
+          title={shuffle ? 'Disable shuffle' : 'Shuffle album'}
         >
           <Shuffle size={24} />
+          {shuffle && (
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#1db954] rounded-full" />
+          )}
         </button>
       </div>
 

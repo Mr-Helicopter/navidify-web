@@ -40,7 +40,7 @@ interface PlayerState {
   isEqModalOpen: boolean;
 
   // Actions
-  playTrack: (song: Song, contextQueue?: Song[]) => Promise<void>;
+  playTrack: (song: Song, contextQueue?: Song[], startIndex?: number) => Promise<void>;
   togglePlay: () => void;
   seek: (seconds: number) => void;
   nextTrack: () => Promise<void>;
@@ -61,6 +61,8 @@ interface PlayerState {
   toggleLyrics: () => void;
   toggleEqModal: (open?: boolean) => void;
 }
+
+let isTransitioning = false;
 
 export const usePlayerStore = create<PlayerState>()(
   persist(
@@ -88,16 +90,25 @@ export const usePlayerStore = create<PlayerState>()(
       isLyricsOpen: false,
       isEqModalOpen: false,
 
-      playTrack: async (song: Song, contextQueue?: Song[]) => {
+      playTrack: async (song: Song, contextQueue?: Song[], startIndex?: number) => {
         let newQueue = get().queue;
         let newIndex = 0;
 
         if (contextQueue && contextQueue.length > 0) {
           newQueue = [...contextQueue];
-          newIndex = newQueue.findIndex((s) => s.id === song.id);
-          if (newIndex === -1) {
-            newQueue.unshift(song);
-            newIndex = 0;
+          if (
+            startIndex !== undefined &&
+            startIndex >= 0 &&
+            startIndex < newQueue.length &&
+            newQueue[startIndex]?.id === song.id
+          ) {
+            newIndex = startIndex;
+          } else {
+            newIndex = newQueue.findIndex((s) => s.id === song.id);
+            if (newIndex === -1) {
+              newQueue.unshift(song);
+              newIndex = 0;
+            }
           }
         } else {
           // If song is not in current queue, prepend or append
@@ -152,6 +163,12 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       nextTrack: async () => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        setTimeout(() => {
+          isTransitioning = false;
+        }, 350);
+
         const { queue, queueIndex, repeatMode, shuffle, currentTrack } = get();
         if (queue.length === 0) return;
 
@@ -174,6 +191,8 @@ export const usePlayerStore = create<PlayerState>()(
           }
           nextIdx = rand;
         }
+
+        console.log(`[Navidify] Skipping track - shuffle: ${shuffle}, index: ${queueIndex} -> ${nextIdx}, total: ${queue.length}`);
 
         if (nextIdx >= queue.length) {
           if (repeatMode === 'all') {
@@ -203,6 +222,12 @@ export const usePlayerStore = create<PlayerState>()(
       },
 
       prevTrack: async () => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        setTimeout(() => {
+          isTransitioning = false;
+        }, 350);
+
         const { currentTime, queue, queueIndex } = get();
         // If > 3 seconds in, restart track
         if (currentTime > 3) {

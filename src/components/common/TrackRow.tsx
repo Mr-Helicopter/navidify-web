@@ -36,7 +36,7 @@ export const TrackRow: React.FC<TrackRowProps> = ({
     if (isCurrent) {
       togglePlay();
     } else {
-      playTrack(song, allSongs.length > 0 ? allSongs : [song]);
+      playTrack(song, allSongs.length > 0 ? allSongs : [song], index);
     }
   };
 

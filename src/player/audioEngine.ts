@@ -33,6 +33,7 @@ class AudioEngine {
   private eqEnabled = true;
   private eqGains: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   private isPreloadedReady = false;
+  private isChangingTrack = false;
 
   constructor() {
     this.audioA = new Audio();
@@ -65,6 +66,7 @@ class AudioEngine {
     });
 
     el.addEventListener('ended', () => {
+      if (this.isChangingTrack) return;
       if (this.activeSlot === slot) {
         if (this.listeners.onEnded) {
           this.listeners.onEnded();
@@ -177,14 +179,25 @@ class AudioEngine {
       return;
     }
 
+    this.isChangingTrack = true;
     const active = this.getActiveAudio();
+    try {
+      active.pause();
+    } catch {}
+
     active.src = streamUrl;
     active.load();
+    this.isPreloadedReady = false;
+    this.preloadedTrack = null;
 
     try {
       await active.play();
     } catch (err) {
       console.error('[AudioEngine] Failed to play track:', err);
+    } finally {
+      setTimeout(() => {
+        this.isChangingTrack = false;
+      }, 300);
     }
   }
 
@@ -202,6 +215,7 @@ class AudioEngine {
   }
 
   public swapSlots(crossfadeDurationMs = 300) {
+    this.isChangingTrack = true;
     const prevSlot = this.activeSlot;
     this.activeSlot = prevSlot === 'A' ? 'B' : 'A';
 
@@ -222,10 +236,12 @@ class AudioEngine {
       setTimeout(() => {
         prevAudio.pause();
         prevAudio.currentTime = 0;
+        this.isChangingTrack = false;
       }, crossfadeDurationMs + 50);
     } else {
       prevAudio.pause();
       prevAudio.currentTime = 0;
+      this.isChangingTrack = false;
     }
   }
 

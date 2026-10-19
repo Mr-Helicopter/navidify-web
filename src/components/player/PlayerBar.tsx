@@ -137,7 +137,7 @@ export const PlayerBar: React.FC = () => {
             className={`transition-colors relative ${
               shuffle ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
             }`}
-            title="Enable shuffle"
+            title={shuffle ? 'Disable shuffle' : 'Enable shuffle'}
           >
             <Shuffle size={18} />
             {shuffle && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#1db954] rounded-full" />}

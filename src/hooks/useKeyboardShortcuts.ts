@@ -31,23 +31,6 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      // Hardware media keys dispatched to window
-      if (e.code === 'MediaTrackNext') {
-        e.preventDefault();
-        nextTrack();
-        return;
-      }
-      if (e.code === 'MediaTrackPrevious') {
-        e.preventDefault();
-        prevTrack();
-        return;
-      }
-      if (e.code === 'MediaPlayPause') {
-        e.preventDefault();
-        togglePlay();
-        return;
-      }
-
       // Space: Play / Pause toggle
       if (e.code === 'Space' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();

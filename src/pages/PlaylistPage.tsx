@@ -11,7 +11,7 @@ import { useLibraryStore } from '../state/useLibraryStore';
 export const PlaylistPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle } = usePlayerStore();
+  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle, shuffle } = usePlayerStore();
   const { deletePlaylist } = useLibraryStore();
 
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
@@ -170,17 +170,23 @@ export const PlaylistPage: React.FC = () => {
 
           <button
             onClick={() => {
+              const willBeShuffle = !shuffle;
               toggleShuffle();
-              if (songs.length > 0) {
+              if (willBeShuffle && songs.length > 0 && !isPlaying) {
                 const rand = Math.floor(Math.random() * songs.length);
-                playTrack(songs[rand], songs);
+                playTrack(songs[rand], songs, rand);
               }
             }}
             disabled={songs.length === 0}
-            className="text-[#b3b3b3] hover:text-white transition-colors disabled:opacity-40"
-            title="Shuffle playlist"
+            className={`transition-colors relative p-2 rounded-full hover:bg-[#282828] disabled:opacity-40 ${
+              shuffle ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+            }`}
+            title={shuffle ? 'Disable shuffle' : 'Shuffle playlist'}
           >
             <Shuffle size={24} />
+            {shuffle && (
+              <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#1db954] rounded-full" />
+            )}
           </button>
         </div>
 

@@ -7,7 +7,7 @@ import { formatTotalDuration } from '../utils/formatters';
 
 export const LikedSongsPage: React.FC = () => {
   const { starredSongs, isLoadingStarred } = useLibraryStore();
-  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle } = usePlayerStore();
+  const { currentTrack, isPlaying, playTrack, togglePlay, toggleShuffle, shuffle } = usePlayerStore();
 
   const totalDuration = starredSongs.reduce((acc, s) => acc + (s.duration || 0), 0);
   const isCurrentlyPlayingLiked =
@@ -62,17 +62,23 @@ export const LikedSongsPage: React.FC = () => {
 
         <button
           onClick={() => {
+            const willBeShuffle = !shuffle;
             toggleShuffle();
-            if (starredSongs.length > 0) {
+            if (willBeShuffle && starredSongs.length > 0 && !isPlaying) {
               const rand = Math.floor(Math.random() * starredSongs.length);
-              playTrack(starredSongs[rand], starredSongs);
+              playTrack(starredSongs[rand], starredSongs, rand);
             }
           }}
           disabled={starredSongs.length === 0}
-          className="text-[#b3b3b3] hover:text-white transition-colors disabled:opacity-40"
-          title="Shuffle Liked Songs"
+          className={`transition-colors relative p-2 rounded-full hover:bg-[#282828] disabled:opacity-40 ${
+            shuffle ? 'text-[#1db954]' : 'text-[#b3b3b3] hover:text-white'
+          }`}
+          title={shuffle ? 'Disable shuffle' : 'Shuffle Liked Songs'}
         >
           <Shuffle size={24} />
+          {shuffle && (
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#1db954] rounded-full" />
+          )}
         </button>
       </div>
 
